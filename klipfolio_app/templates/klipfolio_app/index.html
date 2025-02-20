@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar PDF de Dashboards</title>
+    <style>
+        #mensaje {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>Generar PDF de Dashboards</h1>
+    
+    {%csrf_token%}
+    <button id="ejecutarBtn">Ejecutar Script</button>
+    <p id="mensaje" class="hidden"></p>
+
+    <script>
+        document.getElementById('ejecutarBtn').addEventListener('click', function() {
+            const mensaje = document.getElementById('mensaje');
+            mensaje.innerText = 'Cargando...';
+            mensaje.classList.remove('hidden');
+
+            fetch('/generar-pdf/', { method: 'POST' })
+                .then(response => {
+                    if (response.ok) {
+                        return response.blob();
+                    } else {
+                        throw new Error('Error al generar el PDF');
+                    }
+                })
+                .then(blob => {
+                    // Crear un enlace temporal para descargar el PDF
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'dashboards_unificados.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+
+                    mensaje.innerText = 'PDF generado y descargado exitosamente.';
+                })
+                .catch(error => {
+                    mensaje.innerText = 'Error: ' + error.message;
+                });
+        });
+    </script>
+</body>
+</html>
